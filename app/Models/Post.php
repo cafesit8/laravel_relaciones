@@ -12,6 +12,10 @@ class Post extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
+    protected $guarded = [''];
+
     protected $hidden = ['user_id'];
 
     public function user() {
