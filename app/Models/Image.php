@@ -10,7 +10,9 @@ class Image extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
     protected $hidden = ['post_id'];
+    protected $guarded = [];
 
     public function post() {
       return $this->belongsTo(Post::class);

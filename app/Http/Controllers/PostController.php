@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Image;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -21,7 +22,7 @@ class PostController extends Controller
 
       $response = [
         'message' => 'Posts retrieved successfully',
-        'response' => $posts,
+        'data' => $posts,
         'status' => 200
       ];
 
@@ -41,27 +42,31 @@ class PostController extends Controller
         'description' => 'required|string|max:1000',
         'title' => 'required|string|max:150',
         'date' => 'required|date',
-        // 'images' => 'required|array|min:1|max:5',  // <--- Aquí es para guardar imagenes al momento de crear un post
+        'images' => 'required|array|min:1|max:5',  // <--- Aquí es para guardar imagenes al momento de crear un post
+        'images.*.url' => 'required|string', // <--- Aquí se valida que cada imagen tenga un url
         'user_id' => 'required|exists:users,id'
       ]);
   
       if ($validator->fails()) {
         return response()->json([
           'message' => 'Validation error',
-          'response' => $validator->errors(),
+          'data' => $validator->errors(),
           'status' => 422
         ], 422);
       }
   
       $post = Post::create($request->all());
 
-      if ($request->hasFile('images')) {
-        foreach ($request->file('images') as $image) {
-            $path = $image->store('images');
-            $post->images()->create(['path' => $path]);
+      if ($request->has('images')) {
+        $images = $request->input('images');
+        foreach ($images as $image) {
+          Image::create([
+            'url' => $image['url'],
+            'post_id' => $post->id
+          ]);
         }
       }
-  
+
       if (!$post) {
         return response()->json([
           'message' => 'Error al crear el post',
@@ -71,7 +76,7 @@ class PostController extends Controller
   
       $response = [
         'message' => 'Post created successfully',
-        'response' => $post,
+        'data' => $post,
         'status' => 201
       ];
   
